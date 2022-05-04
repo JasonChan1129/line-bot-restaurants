@@ -288,4 +288,4 @@ app.post('/webhook', async (req, res) => {
 	res.send('HTTP POST request sent to the webhook URL!');
 });
 
-app.listen(3000, () => console.log(`Server is listening on http://localhost/${PORT}`));
+app.listen(PORT, () => console.log(`Server is listening on http://localhost/${PORT}`));
