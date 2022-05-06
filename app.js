@@ -225,6 +225,17 @@ app.post('/webhook', async (req, res) => {
 			messages = !isExist
 				? [{ type: 'text', text: 'Added to your favourite!' }]
 				: [{ type: 'text', text: 'Item already in your favourite!' }];
+		} else if (params.action === 'remove') {
+			// deleteOne returns an object with the property deletedCount indicating how many documents were deleted.
+			const result = await Favourite.deleteOne({
+				line_id: params.line_id,
+				restaurant_name: params.name,
+				restaurant_url: params.url,
+			});
+			messages =
+				result.deletedCount === 1
+					? [{ type: 'text', text: 'Removed from your favourite!' }]
+					: [{ type: 'text', text: 'Failed. Try again.' }];
 		}
 	}
 

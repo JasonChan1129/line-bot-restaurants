@@ -12,7 +12,7 @@ function carouselColumnTemplete(restaurant) {
 				{
 					type: 'postback',
 					label: 'Remove',
-					data: `action=remove&name=${restaurant.restaurant_name}&url=${restaurant.restaurant_nurl}`,
+					data: `action=remove&name=${restaurant.restaurant_name}&url=${restaurant.restaurant_url}&line_id=${restaurant.line_id}`,
 				},
 				{
 					type: 'uri',
