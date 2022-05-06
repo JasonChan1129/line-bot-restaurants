@@ -1,8 +1,8 @@
-// require('dotenv').config();
+require('dotenv').config();
 const axios = require('axios');
 
 async function fetchRestaurantUrl(place_id) {
-	const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&key=${process.env.GOOGLE_API_KEY}`;
+	const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=url&key=${process.env.GOOGLE_API_KEY}`;
 	try {
 		const response = await axios.get(url);
 		const result = response.data.result;

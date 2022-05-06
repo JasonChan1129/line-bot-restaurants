@@ -13,9 +13,9 @@ function carouselColumnTemplete(restaurant) {
 				data: `action=add&itemid=${restaurant.place_id}`,
 			},
 			{
-				type: 'postback',
+				type: 'uri',
 				label: 'Details',
-				data: `action=details&place_id=${restaurant.place_id}`,
+				uri: restaurant.url,
 			},
 		],
 	};

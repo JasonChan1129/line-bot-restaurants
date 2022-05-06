@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const https = require('https');
 const querystring = require('querystring');
@@ -177,6 +177,10 @@ app.post('/webhook', async (req, res) => {
 			const { latitude, longitude } = messageObj;
 			// only fetch data if location has changed
 			restaurantsList = await fetchNearbyRestaurants(latitude, longitude);
+			restaurantsList.forEach(async function (restaurant) {
+				const url = await fetchRestaurantUrl(restaurant.place_id);
+				restaurant.url = url;
+			});
 			messages = [
 				{
 					type: 'template',
@@ -200,43 +204,6 @@ app.post('/webhook', async (req, res) => {
 								type: 'message',
 								label: 'Pick one',
 								text: 'pick a restaurant',
-							},
-						],
-					},
-				},
-			];
-		}
-	}
-	// if user send a postback to the bot
-	else if (webhookEventObj.type === 'postback') {
-		const data = webhookEventObj.postback.data;
-		const params = querystring.parse(data);
-		if (params.action === 'details') {
-			const url = await fetchRestaurantUrl(params.place_id);
-			messages = [
-				{
-					type: 'text',
-					text: `${url}`,
-				},
-				{
-					type: 'text',
-					text: '.',
-					quickReply: {
-						items: [
-							{
-								type: 'action',
-								action: {
-									type: 'location',
-									label: 'Change location',
-								},
-							},
-							{
-								type: 'action',
-								action: {
-									type: 'message',
-									label: 'Menu',
-									text: 'menu',
-								},
 							},
 						],
 					},
