@@ -2,15 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const https = require('https');
 const querystring = require('querystring');
-const restaurantSeed = require('./seed');
 const Favourite = require('./models/favourite');
+// for testing
+const restaurantSeed = require('./seed');
 
 const fetchNearbyRestaurants = require('./utils/fetchNearbyRestaurants');
 const fetchRestaurantUrl = require('./utils/fetchRestaurantUrl');
 const randomPickRestaurant = require('./utils/randomPickRestaurant');
 const createCarousels = require('./utils/createCarousels');
 const columnTemplete = require('./utils/carouselColumnTemplete');
-const { text } = require('express');
 
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN;
@@ -69,22 +69,15 @@ app.post('/webhook', async (req, res) => {
 						...carouselTempletes,
 						{
 							type: 'text',
-							text: "Don't know what to do next? You can...",
+							text: 'Dont know what to do?',
 							quickReply: {
 								items: [
 									{
 										type: 'action',
 										action: {
-											type: 'location',
-											label: 'Change location',
-										},
-									},
-									{
-										type: 'action',
-										action: {
 											type: 'message',
-											label: 'Pick a restaurant',
-											text: 'pick a restaurant',
+											label: 'Back to menu',
+											text: 'menu',
 										},
 									},
 								],
@@ -108,30 +101,15 @@ app.post('/webhook', async (req, res) => {
 						},
 						{
 							type: 'text',
-							text: "Don't know what to do next? You can...",
+							text: 'Dont know what to do?',
 							quickReply: {
 								items: [
 									{
 										type: 'action',
 										action: {
-											type: 'location',
-											label: 'Change location',
-										},
-									},
-									{
-										type: 'action',
-										action: {
 											type: 'message',
-											label: 'Pick again',
-											text: 'pick a restaurant',
-										},
-									},
-									{
-										type: 'action',
-										action: {
-											type: 'message',
-											label: 'Show nearby',
-											text: 'show nearby restaurants (highest rating comes first)',
+											label: 'Back to menu',
+											text: 'menu',
 										},
 									},
 								],
@@ -147,7 +125,62 @@ app.post('/webhook', async (req, res) => {
 					} else {
 						messages = [{ type: 'text', text: 'there is nothing in your favourite.' }];
 					}
+					messages.push({
+						type: 'text',
+						text: 'Dont know what to do?',
+						quickReply: {
+							items: [
+								{
+									type: 'action',
+									action: {
+										type: 'message',
+										label: 'Back to menu',
+										text: 'menu',
+									},
+								},
+							],
+						},
+					});
 
+					break;
+				case 'menu':
+					messages = [
+						{
+							type: 'template',
+							altText: 'This is a buttons template',
+							template: {
+								type: 'buttons',
+								thumbnailImageUrl:
+									'https://res.cloudinary.com/dcc94ynkl/image/upload/v1651222906/menu_jhyzu2.jpg',
+								imageAspectRatio: 'rectangle',
+								imageSize: 'cover',
+								imageBackgroundColor: '#FFFFFF',
+								title: 'Menu',
+								text: 'Please select',
+								actions: [
+									{
+										type: 'message',
+										label: 'Show nearby',
+										text: 'show nearby restaurants (highest rating comes first)',
+									},
+									{
+										type: 'message',
+										label: 'Pick one',
+										text: 'pick a restaurant',
+									},
+									{
+										type: 'message',
+										label: 'Show my favorite',
+										text: 'show my favorite',
+									},
+									{
+										type: 'location',
+										label: 'Change location',
+									},
+								],
+							},
+						},
+					];
 					break;
 				default:
 					messages = [
@@ -163,8 +196,9 @@ app.post('/webhook', async (req, res) => {
 		else if (messageObj.type === 'location') {
 			const { latitude, longitude } = messageObj;
 			// only fetch data if location has changed
-			// restaurantsList = await fetchNearbyRestaurants(latitude, longitude);
-			restaurantsList = restaurantSeed;
+			restaurantsList = await fetchNearbyRestaurants(latitude, longitude);
+			// for testing
+			// restaurantsList = restaurantSeed;
 			restaurantsList.forEach(async function (restaurant) {
 				const url = await fetchRestaurantUrl(restaurant.place_id);
 				restaurant.url = url;
@@ -198,6 +232,10 @@ app.post('/webhook', async (req, res) => {
 								label: 'Show my favorite',
 								text: 'show my favorite',
 							},
+							{
+								type: 'location',
+								label: 'Change location',
+							},
 						],
 					},
 				},
@@ -220,11 +258,26 @@ app.post('/webhook', async (req, res) => {
 					restaurant_name: params.name,
 					restaurant_url: params.url,
 				});
-				messages = [{ type: 'text', text: 'Added to your favourite!' }];
 			}
 			messages = !isExist
 				? [{ type: 'text', text: 'Added to your favourite!' }]
 				: [{ type: 'text', text: 'Item already in your favourite!' }];
+			messages.push({
+				type: 'text',
+				text: 'Dont know what to do?',
+				quickReply: {
+					items: [
+						{
+							type: 'action',
+							action: {
+								type: 'message',
+								label: 'Back to menu',
+								text: 'menu',
+							},
+						},
+					],
+				},
+			});
 		} else if (params.action === 'remove') {
 			// deleteOne returns an object with the property deletedCount indicating how many documents were deleted.
 			const result = await Favourite.deleteOne({
@@ -236,6 +289,22 @@ app.post('/webhook', async (req, res) => {
 				result.deletedCount === 1
 					? [{ type: 'text', text: 'Removed from your favourite!' }]
 					: [{ type: 'text', text: 'Failed. Try again.' }];
+			messages.push({
+				type: 'text',
+				text: 'Dont know what to do?',
+				quickReply: {
+					items: [
+						{
+							type: 'action',
+							action: {
+								type: 'message',
+								label: 'Back to menu',
+								text: 'menu',
+							},
+						},
+					],
+				},
+			});
 		}
 	}
 
