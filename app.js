@@ -10,6 +10,7 @@ const fetchRestaurantUrl = require('./utils/fetchRestaurantUrl');
 const randomPickRestaurant = require('./utils/randomPickRestaurant');
 const createCarousels = require('./utils/createCarousels');
 const columnTemplete = require('./utils/carouselColumnTemplete');
+const { text } = require('express');
 
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN;
@@ -138,35 +139,15 @@ app.post('/webhook', async (req, res) => {
 						},
 					];
 					break;
-				case 'menu':
-					messages = [
-						{
-							type: 'template',
-							altText: 'This is a buttons template',
-							template: {
-								type: 'buttons',
-								thumbnailImageUrl:
-									'https://res.cloudinary.com/dcc94ynkl/image/upload/v1651222906/menu_jhyzu2.jpg',
-								imageAspectRatio: 'rectangle',
-								imageSize: 'cover',
-								imageBackgroundColor: '#FFFFFF',
-								title: 'Menu',
-								text: 'Please select',
-								actions: [
-									{
-										type: 'message',
-										label: 'Show nearby',
-										text: 'show nearby restaurants (highest rating comes first)',
-									},
-									{
-										type: 'message',
-										label: 'Pick one',
-										text: 'pick a restaurant',
-									},
-								],
-							},
-						},
-					];
+				case 'show my favorite':
+					const favouriteList = await Favourite.find({ line_id: userId }).lean();
+					if (favouriteList.length) {
+						const favouriteTempletes = createCarousels(favouriteList);
+						messages = [...favouriteTempletes];
+					} else {
+						messages = [{ type: 'text', text: 'there is nothing in your favourite.' }];
+					}
+
 					break;
 				default:
 					messages = [
@@ -212,6 +193,11 @@ app.post('/webhook', async (req, res) => {
 								label: 'Pick one',
 								text: 'pick a restaurant',
 							},
+							{
+								type: 'message',
+								label: 'Show my favorite',
+								text: 'show my favorite',
+							},
 						],
 					},
 				},
@@ -221,12 +207,24 @@ app.post('/webhook', async (req, res) => {
 		const data = webhookEventObj.postback.data;
 		const params = querystring.parse(data);
 		if (params.action === 'add') {
-			await Favourite.create({
+			// check if the item has already been added to database
+			const isExist = await Favourite.exists({
 				line_id: userId,
 				restaurant_name: params.name,
 				restaurant_url: params.url,
 			});
-			console.log('added');
+			// only create a new document if item not yet in database
+			if (!isExist) {
+				await Favourite.create({
+					line_id: userId,
+					restaurant_name: params.name,
+					restaurant_url: params.url,
+				});
+				messages = [{ type: 'text', text: 'Added to your favourite!' }];
+			}
+			messages = !isExist
+				? [{ type: 'text', text: 'Added to your favourite!' }]
+				: [{ type: 'text', text: 'Item already in your favourite!' }];
 		}
 	}
 
