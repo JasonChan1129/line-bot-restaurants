@@ -3,6 +3,7 @@ const express = require('express');
 const https = require('https');
 const querystring = require('querystring');
 const restaurantSeed = require('./seed');
+const Favourite = require('./models/favourite');
 
 const fetchNearbyRestaurants = require('./utils/fetchNearbyRestaurants');
 const fetchRestaurantUrl = require('./utils/fetchRestaurantUrl');
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 
 app.post('/webhook', async (req, res) => {
 	const webhookEventObj = req.body.events[0];
+	const { userId } = req.body.events[0].source;
 	const replyToken = webhookEventObj.replyToken;
 	let messages;
 	// if user send a message to the bot
@@ -214,6 +216,17 @@ app.post('/webhook', async (req, res) => {
 					},
 				},
 			];
+		}
+	} else if (webhookEventObj.type === 'postback') {
+		const data = webhookEventObj.postback.data;
+		const params = querystring.parse(data);
+		if (params.action === 'add') {
+			await Favourite.create({
+				line_id: userId,
+				restaurant_name: params.name,
+				restaurant_url: params.url,
+			});
+			console.log('added');
 		}
 	}
 

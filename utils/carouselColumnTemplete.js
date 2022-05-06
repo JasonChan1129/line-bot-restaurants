@@ -10,7 +10,7 @@ function carouselColumnTemplete(restaurant) {
 			{
 				type: 'postback',
 				label: 'Add to favourite',
-				data: `action=add&itemid=${restaurant.place_id}`,
+				data: `action=add&name=${restaurant.name}&url=${restaurant.url}`,
 			},
 			{
 				type: 'uri',
