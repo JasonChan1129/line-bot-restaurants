@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const https = require('https');
 const querystring = require('querystring');
+const restaurantSeed = require('./seed');
 
 const fetchNearbyRestaurants = require('./utils/fetchNearbyRestaurants');
 const fetchRestaurantUrl = require('./utils/fetchRestaurantUrl');
@@ -13,6 +14,9 @@ const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN;
 let restaurantsList;
 const app = express();
+
+// database setup
+require('./config/mongoose');
 
 // middleware
 app.use(express.json());
@@ -176,7 +180,8 @@ app.post('/webhook', async (req, res) => {
 		else if (messageObj.type === 'location') {
 			const { latitude, longitude } = messageObj;
 			// only fetch data if location has changed
-			restaurantsList = await fetchNearbyRestaurants(latitude, longitude);
+			// restaurantsList = await fetchNearbyRestaurants(latitude, longitude);
+			restaurantsList = restaurantSeed;
 			restaurantsList.forEach(async function (restaurant) {
 				const url = await fetchRestaurantUrl(restaurant.place_id);
 				restaurant.url = url;
