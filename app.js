@@ -289,18 +289,19 @@ app.post('/webhook', async (req, res) => {
 			});
 		} else if (params.action === 'remove') {
 			// find the id of the targeted restaurant
-			// const id = Restaurant.findOne({ name: params.name, url: params.url }, '_id');
-
-			// deleteOne returns an object with the property deletedCount indicating how many documents were deleted.
-			const result = await Favourite.deleteOne({
-				line_id: params.line_id,
-				restaurant_name: params.name,
-				restaurant_url: params.url,
-			});
+			const id = (await Restaurant.findOne({ name: params.name, url: params.url }, '_id'))._id;
+			// find the index of the targeted restaurant
+			const user = await User.findOne({ line_id: userId });
+			const favourite = user.favourite;
+			const index = favourite.indexOf(id);
+			// remove the restaurant from favourite array
+			user.favourite.splice(index, 1);
+			await user.save();
 			messages =
-				result.deletedCount === 1
+				index !== -1
 					? [{ type: 'text', text: 'Removed from your favourite!' }]
 					: [{ type: 'text', text: 'Failed. Try again.' }];
+
 			messages.push({
 				type: 'text',
 				text: 'Dont know what to do?',
