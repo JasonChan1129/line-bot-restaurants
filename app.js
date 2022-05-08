@@ -46,6 +46,11 @@ app.post('/webhook', async (req, res) => {
 		if (messageObj.type === 'text') {
 			switch (messageObj.text) {
 				case 'start':
+					// create user document if not already have
+					const isexists = await User.exists({ line_id: userId });
+					if (!isexists) {
+						await User.create({ line_id: userId });
+					}
 					messages = [
 						{
 							type: 'text',

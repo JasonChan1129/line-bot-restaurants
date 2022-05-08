@@ -6,4 +6,4 @@ const restaurantSchema = new Schema({
 	url: { type: String, require: true },
 });
 
-module.exports = mongoose.model('User', restaurantSchema);
+module.exports = mongoose.model('Restaurant', restaurantSchema);
