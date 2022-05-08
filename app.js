@@ -2,7 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const https = require('https');
 const querystring = require('querystring');
-const Favourite = require('./models/favourite');
+const Restaurant = require('./models/restaurant');
+const User = require('./models/user');
 // for testing
 const restaurantSeed = require('./seed');
 
