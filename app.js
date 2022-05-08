@@ -124,7 +124,9 @@ app.post('/webhook', async (req, res) => {
 					];
 					break;
 				case 'show my favorite':
-					const favouriteList = await Favourite.find({ line_id: userId }).lean();
+					const favouriteList = (
+						await User.findOne({ line_id: userId }, 'favourite').populate('favourite').lean()
+					).favourite;
 					if (favouriteList.length) {
 						const favouriteTempletes = createCarousels(favouriteList);
 						messages = [...favouriteTempletes];
@@ -286,6 +288,9 @@ app.post('/webhook', async (req, res) => {
 				},
 			});
 		} else if (params.action === 'remove') {
+			// find the id of the targeted restaurant
+			// const id = Restaurant.findOne({ name: params.name, url: params.url }, '_id');
+
 			// deleteOne returns an object with the property deletedCount indicating how many documents were deleted.
 			const result = await Favourite.deleteOne({
 				line_id: params.line_id,

@@ -3,21 +3,18 @@ function carouselColumnTemplete(restaurant) {
 		return {
 			imageBackgroundColor: '#FFFFFF',
 			// title has to be less than 40 characters
-			title:
-				restaurant.restaurant_name.length > 40
-					? restaurant.restaurant_name.slice(0, 40)
-					: restaurant.restaurant_name,
+			title: restaurant.name.length > 40 ? restaurant.name.slice(0, 40) : restaurant.name,
 			text: ' ',
 			actions: [
 				{
 					type: 'postback',
 					label: 'Remove',
-					data: `action=remove&name=${restaurant.restaurant_name}&url=${restaurant.restaurant_url}&line_id=${restaurant.line_id}`,
+					data: `action=remove&name=${restaurant.name}&url=${restaurant.url}`,
 				},
 				{
 					type: 'uri',
 					label: 'Details',
-					uri: restaurant.restaurant_url,
+					uri: restaurant.url,
 				},
 			],
 		};
