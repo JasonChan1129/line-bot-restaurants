@@ -251,21 +251,22 @@ app.post('/webhook', async (req, res) => {
 		const data = webhookEventObj.postback.data;
 		const params = querystring.parse(data);
 		if (params.action === 'add') {
-			// check if the item has already been added to database
-			const isExist = await Favourite.exists({
-				line_id: userId,
-				restaurant_name: params.name,
-				restaurant_url: params.url,
-			});
-			// only create a new document if item not yet in database
-			if (!isExist) {
-				await Favourite.create({
-					line_id: userId,
-					restaurant_name: params.name,
-					restaurant_url: params.url,
-				});
+			// check if the restaurant existed in Restaurant collection yet
+			let restaurant = await Restaurant.findOne({ name: params.name, url: params.url });
+			// if not, create a new collection
+			if (!restaurant) {
+				restaurant = await Restaurant.create({ name: params.name, url: params.url });
 			}
-			messages = !isExist
+			// check if the user has added the restaurant to favourite yet
+			const user = await User.findOne({ line_id: userId });
+			const isExists = await user.favourite.includes(restaurant._id);
+			// if not, add to favourite
+			if (!isExists) {
+				user.favourite.push(restaurant._id);
+				await user.save();
+			}
+
+			messages = !isExists
 				? [{ type: 'text', text: 'Added to your favourite!' }]
 				: [{ type: 'text', text: 'Item already in your favourite!' }];
 			messages.push({
